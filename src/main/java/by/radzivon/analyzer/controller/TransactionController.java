@@ -4,6 +4,8 @@ import by.radzivon.analyzer.entity.Transaction;
 import by.radzivon.analyzer.model.ResponseMessage;
 import by.radzivon.analyzer.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,9 +29,13 @@ public class TransactionController {
     }
 
     @PostMapping("/upload")
-    public ResponseMessage uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-        transactionService.saveTransactionFromFile(file);
-        return new ResponseMessage("file upload successful");
+    public ResponseEntity<ResponseMessage> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+        try {
+            transactionService.saveTransactionFromFile(file);
+            return ResponseEntity.ok(new ResponseMessage("file upload successful"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage("Could not upload the file"));
+        }
     }
 
     @GetMapping("/all")
@@ -38,11 +44,14 @@ public class TransactionController {
     }
 
     @GetMapping("/analyze")
-    public ResponseEntity<?> analyze(@PathParam("fromDate") String fromDate,
-                                     @PathParam("toDate") String toDate,
+    public ResponseEntity<?> analyze(@PathParam("fromDate")
+                                     @DateTimeFormat(pattern = "dd/MM/yyyy'T'HH:mm:ss")
+                                             LocalDateTime fromDate,
+                                     @PathParam("toDate")
+                                     @DateTimeFormat(pattern = "dd/MM/yyyy'T'HH:mm:ss")
+                                             LocalDateTime toDate,
                                      @PathParam("merchant") String merchant) {
-            LocalDateTime fromDateTime = LocalDateTime.parse(fromDate, formatter);
-            LocalDateTime toDateTime = LocalDateTime.parse(toDate, formatter);
-            return ResponseEntity.ok(transactionService.analyze(fromDateTime, toDateTime, merchant));
+
+        return ResponseEntity.ok(transactionService.analyze(fromDate, toDate, merchant));
     }
 }
