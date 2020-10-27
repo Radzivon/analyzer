@@ -5,7 +5,6 @@ import by.radzivon.analyzer.model.AnalysisInfo;
 import by.radzivon.analyzer.model.ResponseMessage;
 import by.radzivon.analyzer.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,13 +37,13 @@ public class TransactionController {
         return transactionService.findAll();
     }
 
-    @GetMapping("/anylize")
-    public AnalysisInfo anylize(@PathParam("fromDate") String fromDateStr,
-                                @PathParam("toDate") String toDateStr,
+    @GetMapping("/analyze")
+    public AnalysisInfo analyze(@PathParam("fromDate") String fromDate,
+                                @PathParam("toDate") String toDate,
                                 @PathParam("merchant") String merchant) {
 
-        LocalDateTime fromDate = LocalDateTime.parse(fromDateStr, formatter);
-        LocalDateTime toDate = LocalDateTime.parse(toDateStr, formatter);
-        return transactionService.analyze(fromDate, toDate, merchant);
+        LocalDateTime fromDateTime = LocalDateTime.parse(fromDate, formatter);
+        LocalDateTime toDateTime = LocalDateTime.parse(toDate, formatter);
+        return transactionService.analyze(fromDateTime, toDateTime, merchant);
     }
 }

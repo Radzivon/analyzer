@@ -1,6 +1,7 @@
 package by.radzivon.analyzer.repository;
 
 import by.radzivon.analyzer.entity.Transaction;
+import by.radzivon.analyzer.entity.TransactionType;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,6 +13,8 @@ public interface TransactionRepository extends CrudRepository<Transaction, Strin
     List<Transaction> findAll();
 
     List<Transaction> findAllByMerchantAndDateIsBetween(String merchant, LocalDateTime fromDate, LocalDateTime toDate);
+
+    List<Transaction> findAllByType(TransactionType transactionType);
 
     Transaction save(Transaction transaction);
 

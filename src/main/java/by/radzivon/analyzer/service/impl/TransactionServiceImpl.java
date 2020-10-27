@@ -1,6 +1,7 @@
 package by.radzivon.analyzer.service.impl;
 
 import by.radzivon.analyzer.entity.Transaction;
+import by.radzivon.analyzer.entity.TransactionType;
 import by.radzivon.analyzer.model.AnalysisInfo;
 import by.radzivon.analyzer.repository.TransactionRepository;
 import by.radzivon.analyzer.service.ExcelService;
@@ -10,9 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -38,6 +40,32 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public AnalysisInfo analyze(LocalDateTime fromDate, LocalDateTime toDate, String merchant) {
-        return null;
+
+        List<Transaction> transactions =
+                transactionRepository.findAllByMerchantAndDateIsBetween(merchant, fromDate, toDate).stream()
+                        .filter(x -> x.getType() == TransactionType.PAYMENT)
+                        .collect(Collectors.toList());
+
+        List<Transaction> reversalTransactions =
+                transactionRepository.findAllByType(TransactionType.REVERSAL);
+
+        for (Transaction transaction : reversalTransactions) {
+            transactions =
+                    transactions.stream()
+                            .filter(x -> !x.getId().equals(transaction.getRelatedTransaction()))
+                            .collect(Collectors.toList());
+        }
+
+        Long numberOfTransactions = transactions.stream().distinct().count();
+
+        BigDecimal averageTransactionValue =
+                transactions.stream()
+                        .map(Transaction::getAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return AnalysisInfo.builder()
+                .numberOfTransactions(numberOfTransactions)
+                .averageTransactionValue(averageTransactionValue)
+                .build();
     }
 }
