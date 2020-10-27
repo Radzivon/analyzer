@@ -12,7 +12,7 @@ import java.util.List;
 public interface TransactionRepository extends CrudRepository<Transaction, String> {
     List<Transaction> findAll();
 
-    List<Transaction> findAllByMerchantAndDateIsBetween(String merchant, LocalDateTime fromDate, LocalDateTime toDate);
+    List<Transaction> findAllByMerchantAndDateIsBetweenAndType(String merchant, LocalDateTime fromDate, LocalDateTime toDate, TransactionType transactionType);
 
     List<Transaction> findAllByType(TransactionType transactionType);
 

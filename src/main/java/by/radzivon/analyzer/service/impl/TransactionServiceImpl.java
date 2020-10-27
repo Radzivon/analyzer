@@ -42,19 +42,17 @@ public class TransactionServiceImpl implements TransactionService {
     public AnalysisInfo analyze(LocalDateTime fromDate, LocalDateTime toDate, String merchant) {
 
         List<Transaction> transactions =
-                transactionRepository.findAllByMerchantAndDateIsBetween(merchant, fromDate, toDate).stream()
-                        .filter(x -> x.getType() == TransactionType.PAYMENT)
+                transactionRepository.findAllByMerchantAndDateIsBetweenAndType(merchant, fromDate, toDate, TransactionType.PAYMENT);
+
+        List<String> reversalTransactions =
+                transactionRepository.findAllByType(TransactionType.REVERSAL).stream()
+                        .map(Transaction::getRelatedTransaction)
                         .collect(Collectors.toList());
 
-        List<Transaction> reversalTransactions =
-                transactionRepository.findAllByType(TransactionType.REVERSAL);
-
-        for (Transaction transaction : reversalTransactions) {
-            transactions =
-                    transactions.stream()
-                            .filter(x -> !x.getId().equals(transaction.getRelatedTransaction()))
-                            .collect(Collectors.toList());
-        }
+        transactions =
+                transactions.stream()
+                        .filter(x -> reversalTransactions.stream().noneMatch(str -> x.getId().equals(str)))
+                        .collect(Collectors.toList());
 
         Long numberOfTransactions = transactions.stream().distinct().count();
 
